@@ -56,9 +56,9 @@ function updateBinding(element) {
 
     $_anguleuxInterne.bindingMap[strAttrDataBind].forEach((x) => {
         if (x instanceof HTMLInputElement && x.$_uniqueID !== element.$_uniqueID) {
-            x.$_objRef[getDestinationName(element.getAttribute("data-bind"))] = element.value;
+            x.$_objRef[getDestinationName(x.getAttribute("data-bind"))] = x.value;
         } else {
-            x.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
+            x.innerHTML = x.$_objRef[getDestinationName(x.getAttribute("data-bind"))];
         }
     });
 
