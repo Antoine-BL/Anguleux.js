@@ -1,5 +1,3 @@
-window.log = console.log;
-
 /**
  * Resolves an object path string (Object.Property.NestedProperty.DestinationProperty)
  * starting from the root object and will (always) return a reference to the object one level
@@ -10,13 +8,10 @@ window.log = console.log;
  * @returns Object
  */
 function resolveObjectPathMoz(rootObject, objectPath) {
-    let t0 = performance.now();
     let arr = objectPath.split('.');
     while (arr.length-1) {
         rootObject = rootObject[arr.shift()];
     }
-    let t1 = performance.now();
-    log("Moz perf: " + (t1 - t0));
     return rootObject;
 }
 
@@ -95,26 +90,11 @@ function initAnguleux() {
             id++;
         }
     }
-    //no choice
+    //no choice, need to init first time after all ids are present
     for (let key in arrElements) {
         let el = arrElements[key];
         if(el instanceof HTMLElement) {
             updateBinding(el);
         }
     }
-}
-
-function test(){
-    let root = {};
-    root.a = {};
-    root.a.b = {};
-    root.a.b.destination = "destination";
-    log("a.b.destination");
-    log("expected result: b or {destination: 'destination'}");
-    log("NoEval:");
-    log(resolveObjectPath(root, "a.b.destination"));
-    log("Eval:");
-    log(resolveObjectPathEval(root, "a.b.destination"));
-    log("Moz:");
-    log(resolveObjectPathMoz(root, "a.b.destination"));
 }
