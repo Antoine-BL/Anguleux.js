@@ -44,19 +44,29 @@ var $scope = {
 /**
  *
  * @param element HTMLElement
+ * @param init boolean
  */
-function updateBinding(element) {
+function updateBinding(element, init) {
     let strAttrDataBind = element.getAttribute("data-bind");
 
     if (element instanceof HTMLInputElement) {
-        element.$_objRef[getDestinationName(element.getAttribute("data-bind"))] = element.value;
+        if(!init) {
+            element.$_objRef[getDestinationName(element.getAttribute("data-bind"))] = element.value;
+        }else{
+            element.value = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
+        }
     } else {
         element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
     }
 
     $_anguleuxInterne.bindingMap[strAttrDataBind].forEach((x) => {
         if (x instanceof HTMLInputElement && x.$_uniqueID !== element.$_uniqueID) {
-            x.$_objRef[getDestinationName(x.getAttribute("data-bind"))] = x.value;
+            if(!init)
+            {
+                x.$_objRef[getDestinationName(x.getAttribute("data-bind"))] = x.value;
+            }else{
+                x.value = x.$_objRef[getDestinationName(x.getAttribute("data-bind"))];
+            }
         } else {
             x.innerHTML = x.$_objRef[getDestinationName(x.getAttribute("data-bind"))];
         }
@@ -94,7 +104,7 @@ function initAnguleux() {
     for (let key in arrElements) {
         let el = arrElements[key];
         if(el instanceof HTMLElement) {
-            updateBinding(el);
+            updateBinding(el, true);
         }
     }
 }
