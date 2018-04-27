@@ -7,6 +7,10 @@
 </head>
 <body>
 <input data-bind="a.b.destination" type="text" value=""/>
-<h1 data-bind="a.b.destination">abcdefg</h1>
+<h1 data-bind="a.b.destination"></h1>
+<h2 data-bind="a.b.destination"></h2>
+<ul>
+    <li ag-for="x in a.b.table">{{x}}</li>
+</ul>
 </body>
 </html>
