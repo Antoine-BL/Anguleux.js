@@ -36,12 +36,23 @@ var $scope = {
 
     a: {
         b: {
-            table: ["a", "b", "c", "d"],
+            table: ["http://google.ca", "http://bing.com", "http://yahoo.ca", "http://duckduckgo.org"],
             destination: "destinationPropertyValue"
         }
     }
 
 };
+
+/**
+ *
+ * @param element
+ * @param init
+ * @param direction boolean false: element to object, true object to element
+ */
+function bind(element, init, direction=true){
+    let strAttrDataBind = element.getAttribute("data-bind");
+
+}
 
 /**
  *
@@ -55,10 +66,20 @@ function updateBinding(element, init) {
         if(!init) {
             element.$_objRef[getDestinationName(element.getAttribute("data-bind"))] = element.value;
         }else{
-            element.value = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
+            if(element.getAttribute("ag-template") === "true"){
+                handleTemplating(element)
+            }
+            else
+                element.value = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
         }
     } else {
-        element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
+        if(element.getAttribute("ag-template") === "true"){
+            //Template bind do nothing
+            handleTemplating(element);
+        }else{
+            //Simple bind
+            element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
+        }
     }
 
     $_anguleuxInterne.bindingMap[strAttrDataBind].forEach((x) => {
@@ -72,7 +93,13 @@ function updateBinding(element, init) {
             }
         } else {
             if(x.$_objRef)
-                x.innerHTML = x.$_objRef[getDestinationName(x.getAttribute("data-bind"))];
+                if(element.getAttribute("ag-template") === "true"){
+                    //Template bind
+                    handleTemplating(element);
+                }else{
+                    //Simple bind
+                    element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
+                }
             else
                 x.parentElement.removeChild(x);
         }
@@ -144,8 +171,11 @@ function handleAgFor(element){
     for (let key in element.$_objRef[strNomTableSeul]) {
         let appendedChild = element.parentElement.appendChild(element.cloneNode(true));
         appendedChild.$_objRef = resolveObjectPathMoz($scope, (strNomTable+".null"));
+        element.setAttribute("ag-template", "true");
         element.setAttribute("data-bind", (strNomTable+"."+key));
-        //handleTemplating(element);
+        $scope[strNomVarFor] = element.$_objRef[strNomTableSeul][key];
+        console.log(key);
+        handleTemplating(appendedChild);
     }
 
 }
@@ -155,8 +185,20 @@ function handleAgFor(element){
  * @param element HTMLElement
  */
 function handleTemplating(element) {
-    let rgx = /{{(.*)}}/g;
-    element.innerHTML = element.innerHTML.replace(rgx, element.$_objRef[getDestinationName(element.getAttribute("data-bind"))])
+    let rgx = /{{([^}]+)}}/g;
+    let matches;
+    do {
+        matches = rgx.exec(element.innerHTML);
+        if (matches) {
+            let tmpltName = matches[1];
+            let resolvedParentObject = resolveObjectPathMoz($scope, tmpltName);
+            console.log(matches[1]);
+            console.log(resolvedParentObject);
+            console.log(tmpltName);
+            //replace
+            element.innerHTML = rgx[Symbol.replace](element.innerHTML, resolvedParentObject[getDestinationName(tmpltName)]);
+        }
+    } while (matches);
 }
 
 function initTemplating(){
