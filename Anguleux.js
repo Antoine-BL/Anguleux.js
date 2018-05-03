@@ -47,11 +47,24 @@ var $scope = {
  *
  * @param element
  * @param init
- * @param direction boolean false: element to object, true object to element
  */
-function bind(element, init, direction=true){
+function bindElement(element, init){
     let strAttrDataBind = element.getAttribute("data-bind");
-
+    let strBinAttrTemplate = element.getAttribute("ag-template");
+    if(element instanceof HTMLInputElement){
+        if(init){
+            element.value = element.$_objRef[getDestinationName(strAttrDataBind)];
+        }else{
+            element.$_objRef[getDestinationName(strAttrDataBind)] = element.value;
+        }
+    }
+    if(!(element instanceof HTMLInputElement)){
+        if(strBinAttrTemplate === "true"){
+            handleTemplating(element);
+        }else{
+            element.innerHTML = element.$_objRef[getDestinationName(strAttrDataBind)];
+        }
+    }
 }
 
 /**
@@ -61,54 +74,8 @@ function bind(element, init, direction=true){
  */
 function updateBinding(element, init) {
     let strAttrDataBind = element.getAttribute("data-bind");
-
-    if (element instanceof HTMLInputElement) {
-        if(!init) {
-            element.$_objRef[getDestinationName(element.getAttribute("data-bind"))] = element.value;
-        }else{
-            if(element.getAttribute("ag-template") === "true"){
-                handleTemplating(element)
-            }
-            else
-                element.value = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
-        }
-    } else {
-        if(element.getAttribute("ag-template") === "true"){
-            //Template bind do nothing
-            console.log('loliconi');
-            handleTemplating(element);
-        }else{
-            //Simple bind
-            console.log('lolicon');
-            element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
-        }
-    }
-
-    $_anguleuxInterne.bindingMap[strAttrDataBind].forEach((x) => {
-        console.log(x);
-        if(x.$_uniqueID !== element.$_uniqueID){
-            if (x instanceof HTMLInputElement) {
-                if(!init){
-                    x.$_objRef[getDestinationName(x.getAttribute("data-bind"))] = x.value;
-                } else{
-                    x.value = x.$_objRef[getDestinationName(x.getAttribute("data-bind"))];
-                }
-            } else {
-                //if(x.$_objRef != null && x.$_objRef !== undefined)
-                if(!x instanceof HTMLInputElement){
-                    if(element.getAttribute("ag-template") === "true"){
-                        //Template bind
-                        handleTemplating(element);
-                    }else{
-                        //Simple bind
-                        element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
-                    }
-                }
-                //if objref null undefined => x.parentElement.removeChild(x);
-            }
-        }
-    });
-
+    bindElement(element, init);
+    $_anguleuxInterne.bindingMap[strAttrDataBind].forEach((x) => bindElement(x, init));
 }
 
 function initElements(){
@@ -168,13 +135,14 @@ function handleAgFor(element){
     let strNomTableSeul = getDestinationName(strNomTable);
 
     //Setup the for element
-    element.display = "none";
+    element.className += " ag-disp-none";
     element.$_objRef = resolveObjectPathMoz($scope, strNomTable);
 
     //Do the for, generate HTMLElements
     for (let key in element.$_objRef[strNomTableSeul]) {
         let appendedChild = element.parentElement.appendChild(element.cloneNode(true));
         appendedChild.$_objRef = resolveObjectPathMoz($scope, (strNomTable+".null"));
+        appendedChild.className = appendedChild.className.replace(" ag-disp-none", "");
         element.setAttribute("ag-template", "true");
         //element.setAttribute("data-bind", (strNomTable+"."+key));
         //$scope[strNomVarFor] = element.$_objRef[strNomTableSeul][key];

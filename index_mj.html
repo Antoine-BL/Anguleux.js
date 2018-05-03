@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="AnguleuxStyle.css"/>
     <script src="Anguleux.js" type="text/javascript"></script>
 </head>
 <body>
 <input data-bind="a.b.destination" type="text" value=""/>
 <h1 data-bind="a.b.destination"></h1>
 <h2 data-bind="a.b.destination"></h2>
+<input data-bind="a.b.table.1" type="text" value=""/>
 <ul>
-    <li ag-for="x in a.b.table">adfasdf adsf asdf ads f <a href="{{x}}">{{x}}</a> d fadsf asd fasdf adsf asdf asdfasdf asfd </li>
+    <li ag-for="x in a.b.table">adfasdf adsf asdf ads f <a>{{x}}</a> d fadsf asd fasdf adsf asdf asdfasdf asfd </li>
 </ul>
 </body>
 </html>
