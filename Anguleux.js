@@ -75,33 +75,37 @@ function updateBinding(element, init) {
     } else {
         if(element.getAttribute("ag-template") === "true"){
             //Template bind do nothing
+            console.log('loliconi');
             handleTemplating(element);
         }else{
             //Simple bind
+            console.log('lolicon');
             element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
         }
     }
 
     $_anguleuxInterne.bindingMap[strAttrDataBind].forEach((x) => {
         console.log(x);
-        if (x instanceof HTMLInputElement && x.$_uniqueID !== element.$_uniqueID) {
-            if(!init)
-            {
-                x.$_objRef[getDestinationName(x.getAttribute("data-bind"))] = x.value;
-            }else{
-                x.value = x.$_objRef[getDestinationName(x.getAttribute("data-bind"))];
-            }
-        } else {
-            if(x.$_objRef)
-                if(element.getAttribute("ag-template") === "true"){
-                    //Template bind
-                    handleTemplating(element);
-                }else{
-                    //Simple bind
-                    element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
+        if(x.$_uniqueID !== element.$_uniqueID){
+            if (x instanceof HTMLInputElement) {
+                if(!init){
+                    x.$_objRef[getDestinationName(x.getAttribute("data-bind"))] = x.value;
+                } else{
+                    x.value = x.$_objRef[getDestinationName(x.getAttribute("data-bind"))];
                 }
-            else
-                x.parentElement.removeChild(x);
+            } else {
+                //if(x.$_objRef != null && x.$_objRef !== undefined)
+                if(!x instanceof HTMLInputElement){
+                    if(element.getAttribute("ag-template") === "true"){
+                        //Template bind
+                        handleTemplating(element);
+                    }else{
+                        //Simple bind
+                        element.innerHTML = element.$_objRef[getDestinationName(element.getAttribute("data-bind"))];
+                    }
+                }
+                //if objref null undefined => x.parentElement.removeChild(x);
+            }
         }
     });
 
@@ -172,10 +176,11 @@ function handleAgFor(element){
         let appendedChild = element.parentElement.appendChild(element.cloneNode(true));
         appendedChild.$_objRef = resolveObjectPathMoz($scope, (strNomTable+".null"));
         element.setAttribute("ag-template", "true");
-        element.setAttribute("data-bind", (strNomTable+"."+key));
-        $scope[strNomVarFor] = element.$_objRef[strNomTableSeul][key];
+        //element.setAttribute("data-bind", (strNomTable+"."+key));
+        //$scope[strNomVarFor] = element.$_objRef[strNomTableSeul][key];
         console.log(key);
-        handleTemplating(appendedChild);
+        console.log("for : " + (strNomTable+"."+key));
+        handleTemplating(appendedChild, (strNomTable+"."+key));
     }
 
 }
@@ -183,20 +188,26 @@ function handleAgFor(element){
 /**
  * Handle HTML templating for an element
  * @param element HTMLElement
+ * @param databind string manual data bind
  */
-function handleTemplating(element) {
-    let rgx = /{{([^}]+)}}/g;
+function handleTemplating(element, databind) {
+    let rgxOnlyInnerHTML = /(?<=\>)(.*?)({{(?<innerTemplate>.+?)}})/g;
+    //let rgxOnlyAttribute = /(".*){{([^}]+)}}(.*")/g;
     let matches;
     do {
-        matches = rgx.exec(element.innerHTML);
+        matches = rgxOnlyInnerHTML.exec(element.innerHTML);
         if (matches) {
-            let tmpltName = matches[1];
+            let tmpltName = matches.groups["innerTemplate"];
             let resolvedParentObject = resolveObjectPathMoz($scope, tmpltName);
-            console.log(matches[1]);
-            console.log(resolvedParentObject);
             console.log(tmpltName);
             //replace
-            element.innerHTML = rgx[Symbol.replace](element.innerHTML, resolvedParentObject[getDestinationName(tmpltName)]);
+            if(databind){
+                console.log("manual data bind : " + databind);
+                element.innerHTML = rgxOnlyInnerHTML[Symbol.replace](element.innerHTML, ("<span data-bind='"+databind+"'>" + resolvedParentObject[getDestinationName(tmpltName)] + "</span>"));
+            }else{
+                element.innerHTML = rgxOnlyInnerHTML[Symbol.replace](element.innerHTML, ("<span data-bind='"+tmpltName+"'>" + resolvedParentObject[getDestinationName(tmpltName)] + "</span>"));
+            }
+
         }
     } while (matches);
 }
