@@ -37,7 +37,8 @@ var $scope = {
     a: {
         b: {
             table: ["http://google.ca", "http://bing.com", "http://yahoo.ca", "http://duckduckgo.org"],
-            destination: "destinationPropertyValue"
+            destination: "destinationPropertyValue",
+            bool: false
         }
     }
 
@@ -53,9 +54,17 @@ function bindElement(element, init){
     let strBinAttrTemplate = element.getAttribute("ag-template");
     if(element instanceof HTMLInputElement){
         if(init){
-            element.value = element.$_objRef[getDestinationName(strAttrDataBind)];
+            if(element.type === "checkbox"){
+                element.checked = element.$_objRef[getDestinationName(strAttrDataBind)];
+            }else{
+                element.value = element.$_objRef[getDestinationName(strAttrDataBind)];
+            }
         }else{
-            element.$_objRef[getDestinationName(strAttrDataBind)] = element.value;
+            if(element.type === "checkbox"){
+                element.$_objRef[getDestinationName(strAttrDataBind)] = element.checked;
+            }else{
+                element.$_objRef[getDestinationName(strAttrDataBind)] = element.value;
+            }
         }
     }
     if(!(element instanceof HTMLInputElement)){
