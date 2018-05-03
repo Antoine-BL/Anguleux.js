@@ -11,6 +11,13 @@ $_anguleuxInterne.initAnguleux = () => {
     $_anguleuxInterne.initDataBinding();
 };
 
+$_anguleuxInterne.initElements = () => {
+    $_anguleuxInterne.dataBindElements = document.querySelectorAll('*[data-bind]');
+    $_anguleuxInterne.agForElements = document.querySelectorAll("*[ag-for]");
+    $_anguleuxInterne.agTemplateElements = document.querySelectorAll("*[ag-template=true]");
+    $_anguleuxInterne.agTemplateDisabled = document.querySelectorAll("*[ag-template=false]");
+};
+
 window.addEventListener("load", $_anguleuxInterne.initAnguleux);
 
 /**
@@ -93,12 +100,7 @@ $_anguleuxInterne.updateBinding = (element, init) => {
     $_anguleuxInterne.bindingMap[strAttrDataBind].forEach((x) => $_anguleuxInterne.bindElement(x, init));
 };
 
-$_anguleuxInterne.initElements = () => {
-    $_anguleuxInterne.dataBindElements = document.querySelectorAll('*[data-bind]');
-    $_anguleuxInterne.agForElements = document.querySelectorAll("*[ag-for]");
-    $_anguleuxInterne.agTemplateElements = document.querySelectorAll("*[ag-template=true]");
-    $_anguleuxInterne.agTemplateDisabled = document.querySelectorAll("*[ag-template=false]");
-};
+
 
 $_anguleuxInterne.initDataBinding = () => {
     //Get elements and bind them
@@ -168,20 +170,20 @@ $_anguleuxInterne.handleAgFor = (element) => {
  * @param element HTMLElement
  * @param databind string manual data bind
  */
-$_anguleuxInterne.handleTemplating = (element, databind) => {
+$_anguleuxInterne.handleTemplating = (element, databind = false) => {
     let rgxOnlyInnerHTML = /(?<=\>)(.*?)({{(?<innerTemplate>.+?)}})/g;
     //let rgxOnlyAttribute = /(".*){{([^}]+)}}(.*")/g;
     let matches;
     do {
-        matches = rgxOnlyInnerHTML.exec(element.innerHTML);
+        matches = rgxOnlyInnerHTML.exec(element.outerHTML);
         if (matches) {
             let tmpltName = matches.groups["innerTemplate"];
             let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
             //replace
-            if(databind){
-                element.innerHTML = rgxOnlyInnerHTML[Symbol.replace](element.innerHTML, ("<span data-bind='"+databind+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
+            if(databind !== false){
+                element.outerHTML = element.outerHTML.replace(matches[2], ("<span data-bind='"+databind+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(databind)] + "</span>"));
             }else{
-                element.innerHTML = rgxOnlyInnerHTML[Symbol.replace](element.innerHTML, ("<span data-bind='"+tmpltName+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
+                element.outerHTML = element.outerHTML.replace(matches[2], ("<span data-bind='"+tmpltName+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
             }
 
         }
@@ -195,7 +197,8 @@ $_anguleuxInterne.initTemplating = () => {
     allElements.forEach((x, i) => {
         if(agForEls.includes(x)){
             $_anguleuxInterne.handleAgFor(x);
-        } else{}
-        //handleTemplating();
+        }else{
+            $_anguleuxInterne.handleTemplating(x);
+        }
     });
 };
