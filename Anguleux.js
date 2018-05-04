@@ -173,11 +173,12 @@ $_anguleuxInterne.handleAgFor = (element, hide=true) => {
         appendedChild.$_objRef = $_anguleuxInterne.resolveObjectPathMoz($scope, (strNomTable+".null"));
         appendedChild.className = appendedChild.className.replace(" ag-disp-none", "");
 
+        if(appendedChild.querySelector("[double-for=true]"))
+            $_anguleuxInterne.handleAgFor(appendedChild.querySelector("[double-for=true]"), false);
+
         element.setAttribute("ag-template", "true");
         $_anguleuxInterne.handleTemplating(appendedChild, (strNomTable+"."+key), strNomVarFor);
 
-        if(appendedChild.querySelector("[double-for=true]"))
-            $_anguleuxInterne.handleAgFor(appendedChild.querySelector("[double-for=true]"), false);
     }
 };
 
@@ -188,27 +189,28 @@ $_anguleuxInterne.handleAgFor = (element, hide=true) => {
  * @param manualMatcher string for manual databind
  */
 $_anguleuxInterne.handleTemplating = (element, databind = false, manualMatcher) => {
-    let rgxOnlyInnerHTML = /(?<=\>)(.*?)({{(?<innerTemplate>.+?)}})/gs;
+    let rgxOnlyInnerHTML = /(?<=\>)|(.*?)({{(?<innerTemplate>.+?)}})/gs;
     let rgxOnlyAttribute = /\S+?=("[^"]*?{{([^}]+?)}}[^"]*?")/g;
 
     let matches;
     do {
-        matches = rgxOnlyInnerHTML.exec(element.outerHTML);
-        if (matches) {
+        matches = rgxOnlyInnerHTML.exec(element.innerHTML);
+        if (matches && matches.groups["innerTemplate"] !== undefined) {
             let tmpltName = matches.groups["innerTemplate"];
-            let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
             //replace
             if(databind !== false){ //databind present
-                element.outerHTML = element.outerHTML.replace("{{"+manualMatcher+"}}", ("<span data-bind='"+databind+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(databind)] + "</span>"));
-                databind = false; //only data bind on the first match
+                let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, databind);
+                element.innerHTML = element.innerHTML.replace("{{"+manualMatcher+"}}", ("<span data-bind='"+databind+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(databind)] + "</span>"));
+                //databind = false; //only data bind on the first match
             }else{
-                console.log(element.innerHTML);
-                console.log(matches[2]);
+                let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
+                //console.log(element.innerHTML);
+                //console.log(matches[2]);
                 element.innerHTML = element.innerHTML.replace(matches[2], ("<span data-bind='"+tmpltName+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
             }
 
         }
-    } while (matches);
+    } while (matches && matches.groups["innerTemplate"] !== undefined);
 
     /*
     let attrMatches;
