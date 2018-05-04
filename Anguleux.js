@@ -1,7 +1,8 @@
 const $_anguleuxInterne = {
 
     bindingMap: {},
-    forRegistry: []
+    forRegistry: [],
+    forReprocessNeeded: false
 
 };
 
@@ -53,8 +54,14 @@ window.$scope = {
             destination: "destinationPropertyValue",
             bool: false
         }
-    }
-
+    },
+    tUsers: [
+        {
+            name: "test",
+            lastName: "test",
+            tSessions: [true, true, false]
+        }
+    ]
 };
 
 /**
@@ -142,7 +149,7 @@ $_anguleuxInterne.initDataBinding = () => {
  * Handle ag-for attribute.
  * @param element HTMLElement
  */
-$_anguleuxInterne.handleAgFor = (element) => {
+$_anguleuxInterne.handleAgFor = (element, hide=true) => {
     //Setup working vars
     let strAttrAgFor = element.getAttribute("ag-for");
     let rgxFor = /(.*) in (.*)/g;
@@ -152,16 +159,25 @@ $_anguleuxInterne.handleAgFor = (element) => {
     let strNomTableSeul = $_anguleuxInterne.getDestinationName(strNomTable);
 
     //Setup the for element
-    element.className += " ag-disp-none";
+    if(hide)
+        element.className += " ag-disp-none";
+
     element.$_objRef = $_anguleuxInterne.resolveObjectPathMoz($scope, strNomTable);
+
+    if(!parsed){return;}
+    if(element.$_objRef === undefined){return;}
 
     //Do the for, generate HTMLElements
     for (let key in element.$_objRef[strNomTableSeul]) {
         let appendedChild = element.parentElement.appendChild(element.cloneNode(true));
         appendedChild.$_objRef = $_anguleuxInterne.resolveObjectPathMoz($scope, (strNomTable+".null"));
         appendedChild.className = appendedChild.className.replace(" ag-disp-none", "");
+
         element.setAttribute("ag-template", "true");
-        $_anguleuxInterne.handleTemplating(appendedChild, (strNomTable+"."+key));
+        $_anguleuxInterne.handleTemplating(appendedChild, (strNomTable+"."+key), strNomVarFor);
+
+        if(appendedChild.querySelector("[double-for=true]"))
+            $_anguleuxInterne.handleAgFor(appendedChild.querySelector("[double-for=true]"), false);
     }
 };
 
@@ -169,10 +185,12 @@ $_anguleuxInterne.handleAgFor = (element) => {
  * Handle HTML templating for an element
  * @param element HTMLElement
  * @param databind string manual data bind
+ * @param manualMatcher string for manual databind
  */
-$_anguleuxInterne.handleTemplating = (element, databind = false) => {
-    let rgxOnlyInnerHTML = /(?<=\>)(.*?)({{(?<innerTemplate>.+?)}})/g;
-    //let rgxOnlyAttribute = /(".*){{([^}]+)}}(.*")/g;
+$_anguleuxInterne.handleTemplating = (element, databind = false, manualMatcher) => {
+    let rgxOnlyInnerHTML = /(?<=\>)(.*?)({{(?<innerTemplate>.+?)}})/gs;
+    let rgxOnlyAttribute = /\S+?=("[^"]*?{{([^}]+?)}}[^"]*?")/g;
+
     let matches;
     do {
         matches = rgxOnlyInnerHTML.exec(element.outerHTML);
@@ -180,25 +198,42 @@ $_anguleuxInterne.handleTemplating = (element, databind = false) => {
             let tmpltName = matches.groups["innerTemplate"];
             let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
             //replace
-            if(databind !== false){
-                element.outerHTML = element.outerHTML.replace(matches[2], ("<span data-bind='"+databind+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(databind)] + "</span>"));
+            if(databind !== false){ //databind present
+                element.outerHTML = element.outerHTML.replace("{{"+manualMatcher+"}}", ("<span data-bind='"+databind+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(databind)] + "</span>"));
+                databind = false; //only data bind on the first match
             }else{
-                element.outerHTML = element.outerHTML.replace(matches[2], ("<span data-bind='"+tmpltName+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
+                console.log(element.innerHTML);
+                console.log(matches[2]);
+                element.innerHTML = element.innerHTML.replace(matches[2], ("<span data-bind='"+tmpltName+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
             }
 
         }
     } while (matches);
+
+    /*
+    let attrMatches;
+    do{
+        let tmpltName = matches[2];
+        attrMatches = rgxOnlyAttribute.exec(element.outerHTML);
+        if(attrMatches){
+            let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
+            let
+        }
+    }while(matches);
+    */
 };
 
 $_anguleuxInterne.initTemplating = () => {
     let agForEls = Array.from($_anguleuxInterne.agForElements);
-    let allElements = Array.from($_anguleuxInterne.agTemplateElements).concat(Array.from($_anguleuxInterne.dataBindElements)).concat(agForEls);
+    agForEls.forEach((x) => $_anguleuxInterne.handleAgFor(x));
 
-    allElements.forEach((x, i) => {
-        if(agForEls.includes(x)){
-            $_anguleuxInterne.handleAgFor(x);
-        }else{
-            $_anguleuxInterne.handleTemplating(x);
-        }
-    });
+    if($_anguleuxInterne.forReprocessNeeded === true){
+        let agForEls = Array.from($_anguleuxInterne.agForElements);
+        agForEls.forEach((x) => $_anguleuxInterne.handleAgFor(x));
+    }
+
+    $_anguleuxInterne.initElements();
+
+    let allElements = Array.from($_anguleuxInterne.agTemplateElements).concat(Array.from($_anguleuxInterne.dataBindElements)).concat(agForEls);
+    allElements.forEach((x) => $_anguleuxInterne.handleTemplating(x));
 };

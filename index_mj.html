@@ -12,11 +12,23 @@
 <h2 data-bind="a.b.destination"></h2>
 <input data-bind="a.b.table.1" type="text" value=""/>
 <ul>
-    <li ag-for="x in a.b.table">adfasdf adsf asdf ads f <a>{{x}}</a> d fadsf asd fasdf adsf asdf asdfasdf asfd</li>
+    <li ag-for="x in a.b.table">adfasdf adsf asdf ads f <a>{{x}}</a> d fadsf asd fasdf adsf asdf {{a.b.destination}} asdfasdf asfd</li>
 </ul>
 
 <input data-bind="a.b.bool" type="checkbox" checked="true"/>
 <h1 data-bind="a.b.bool"></h1>
-<p ag-template="true">lorem ipsum dolor sit amet consectetur {{a.b.destination}} adispicing elit</p>
+<p ag-template="true">lorem ipsum dolor {{a.b.bool}}sit amet consectetur {{a.b.destination}} adispicing elit</p>
+
+<table>
+    <tr ag-for="x in tUsers">
+        <td>
+            {{x.name}}, {{x.lastName}}
+        </td>
+        <td double-for="true" ag-for="y in x.tSessions">
+            {{y}}
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>
