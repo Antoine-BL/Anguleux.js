@@ -149,36 +149,8 @@ $_anguleuxInterne.initDataBinding = () => {
  * Handle ag-for attribute.
  * @param element HTMLElement
  */
-$_anguleuxInterne.handleAgFor = (element, hide=true) => {
-    //Setup working vars
-    let strAttrAgFor = element.getAttribute("ag-for");
-    let rgxFor = /(.*) in (.*)/g;
-    let parsed = rgxFor.exec(strAttrAgFor);
-    let strNomVarFor = parsed[1];
-    let strNomTable = parsed[2];
-    let strNomTableSeul = $_anguleuxInterne.getDestinationName(strNomTable);
+$_anguleuxInterne.handleAgFor = (element) => {
 
-    //Setup the for element
-    if(hide)
-        element.className += " ag-disp-none";
-
-    element.$_objRef = $_anguleuxInterne.resolveObjectPathMoz($scope, strNomTable);
-
-    if(!parsed){return;}
-    if(element.$_objRef === undefined){return;}
-
-    //Do the for, generate HTMLElements
-    for (let key in element.$_objRef[strNomTableSeul]) {
-        let appendedChild = element.parentElement.appendChild(element.cloneNode(true));
-        appendedChild.$_objRef = $_anguleuxInterne.resolveObjectPathMoz($scope, (strNomTable+".null"));
-        appendedChild.className = appendedChild.className.replace(" ag-disp-none", "");
-
-        element.setAttribute("ag-template", "true");
-        $_anguleuxInterne.handleTemplating(appendedChild, (strNomTable+"."+key), strNomVarFor);
-
-        if(appendedChild.querySelector("[double-for=true]"))
-            $_anguleuxInterne.handleAgFor(appendedChild.querySelector("[double-for=true]"), false);
-    }
 };
 
 /**
@@ -187,7 +159,7 @@ $_anguleuxInterne.handleAgFor = (element, hide=true) => {
  * @param databind string manual data bind
  * @param manualMatcher string for manual databind
  */
-$_anguleuxInterne.handleTemplating = (element, databind = false, manualMatcher) => {
+$_anguleuxInterne.handleTemplating = (element) => {
     let rgxOnlyInnerHTML = /(?<=\>)(.*?)({{(?<innerTemplate>.+?)}})/gs;
     let rgxOnlyAttribute = /\S+?=("[^"]*?{{([^}]+?)}}[^"]*?")/g;
 
@@ -197,6 +169,7 @@ $_anguleuxInterne.handleTemplating = (element, databind = false, manualMatcher) 
         if (matches) {
             let tmpltName = matches.groups["innerTemplate"];
             let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
+            element.innerHTML = element.innerHTML.replace(matches[2], ("<span data-bind='"+tmpltName+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
             //replace
             if(databind !== false){ //databind present
                 element.outerHTML = element.outerHTML.replace("{{"+manualMatcher+"}}", ("<span data-bind='"+databind+"'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(databind)] + "</span>"));
