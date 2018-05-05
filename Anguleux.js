@@ -60,7 +60,7 @@ window.$scope = {
         {
             name: "test",
             lastName: "test",
-            tSessions: [true, true, false]
+            tSessions: [['a','b','c'], ['d','e','f'], ['g','h','i']]
         }
     ]
 };
@@ -175,6 +175,8 @@ $_anguleuxInterne.handleAgFor = (element, hasParentFor) => {
         scope = $scope;
     }
 
+    $_anguleuxInterne.forRegistry[varName] = (bindPath+"."+varName); //***
+
     //loop one
     table.forEach((x, i) => {
         $_anguleuxInterne.forScope[varName] = x;
@@ -204,6 +206,9 @@ $_anguleuxInterne.handleAgFor = (element, hasParentFor) => {
         }*/
 
     });
+};
+
+$_anguleuxInterne.handleTemplatingAgFor = (element) => {
 
 };
 
@@ -211,7 +216,7 @@ $_anguleuxInterne.handleAgFor = (element, hasParentFor) => {
  * Handle HTML templating for an element
  * @param element HTMLElement
  */
-$_anguleuxInterne.handleTemplating = (element, scope) => {
+$_anguleuxInterne.handleTemplating = (element) => {
     let rgxOnlyInnerHTML = /(?<=\>)(.*?)({{(?<innerTemplate>.+?)}})/gs;
     let rgxOnlyAttribute = /\S+?=("[^"]*?{{([^}]+?)}}[^"]*?")/g;
 
@@ -220,7 +225,7 @@ $_anguleuxInterne.handleTemplating = (element, scope) => {
         matches = rgxOnlyInnerHTML.exec(element.innerHTML);
         if (matches) {
             let tmpltName = matches.groups["innerTemplate"];
-            let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz(scope, tmpltName);
+            let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
             element.innerHTML = element.innerHTML.replace(matches[2], ("<span data-bind='" + tmpltName + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
         }
     } while (matches);
