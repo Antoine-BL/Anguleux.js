@@ -1,0 +1,23 @@
+<form class="container">
+    <table border="1" cellspacing="5" cellpadding="5">
+        <tbody>
+        <tr>
+            <th>Utilisateurs</th>
+            <th ag-for="cours in tbCours">
+                {{cours.sigle}}
+                <div class="sousTitre">{{cours.session}}</div>
+            </th>
+        </tr>
+        <tr ag-for="util in utilisateurs" id="tr_{{util.id}}">
+            <td>{{util.nomComplet}}</td>
+            <td ag-for="cours in util.tbCours">
+                <div class="checkbox">
+                    <label>
+                        <input name="checkbox" type="checkbox" data-bind="{{cours}}">
+                        <em class="helper"></em> </label>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>

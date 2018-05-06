@@ -1,7 +1,8 @@
 const $_anguleuxInterne = {
 
     bindingMap: {},
-    forRegistry: [],
+    forRegistry: {},
+    forIndexStorage: {},
     forScope: {},
     forReprocessNeeded: false
 
@@ -58,9 +59,14 @@ window.$scope = {
     },
     tUsers: [
         {
-            name: "test",
-            lastName: "test",
-            tSessions: [['a','b','c'], ['d','e','f'], ['g','h','i']]
+            name: "User1",
+            lastName: "User1",
+            tSessions: [false, true, true]
+        },
+        {
+            name: "User2",
+            lastName: "User2",
+            tSessions: [true, true, true]
         }
     ]
 };
@@ -150,7 +156,7 @@ $_anguleuxInterne.initDataBinding = () => {
  * @param element HTMLElement
  * @param hasParentFor boolean
  */
-$_anguleuxInterne.handleAgFor = (element, hasParentFor) => {
+$_anguleuxInterne.handleAgFor = (element) => {
     let attrFor = element.getAttribute("ag-for");
     let rgxFor = /(.*) in (.*)/g;
     let parsed = rgxFor.exec(attrFor);
@@ -159,13 +165,34 @@ $_anguleuxInterne.handleAgFor = (element, hasParentFor) => {
     let parentForVariable = parsed[2].split(".")[0];
     let tableDestinationName = $_anguleuxInterne.getDestinationName(bindPath);
 
+    if(element.getAttribute("for-done") === "true"){
+        element.$_createdElementsTable.forEach((z) => {
+            z.remove(); //begone
+        });
+        element.setAttribute("for-done", "false");
+    }
+
+    element.$_createdElementsTable = [];
+
+    $_anguleuxInterne.forRegistry[varName] = (bindPath + "." + varName);
+
+    let a = $_anguleuxInterne.forRegistry[varName].split(".");
+
+    if($_anguleuxInterne.forRegistry[a[0]] !== undefined){
+        a[0] = $_anguleuxInterne.forRegistry[a[0]];
+        $_anguleuxInterne.forRegistry[varName] = a.join(".");
+    }
+
+    let fullyQualifiedPath = $_anguleuxInterne.forRegistry[varName];
+
     //hide original for element
-    element.className += " ag-disp-none";
+    if(!element.classList.contains("ag-disp-none"))
+        element.className += " ag-disp-none";
 
     let table;
     let scope;
 
-    if (hasParentFor === true) {
+    if (!$scope[bindPath.split(".")[0]]) {
         element.$_objRef = $_anguleuxInterne.resolveObjectPathMoz($_anguleuxInterne.forScope, bindPath); //forScope[varName] should be an array
         table = element.$_objRef[tableDestinationName];
         scope = $_anguleuxInterne.forScope;
@@ -175,60 +202,107 @@ $_anguleuxInterne.handleAgFor = (element, hasParentFor) => {
         scope = $scope;
     }
 
-    $_anguleuxInterne.forRegistry[varName] = (bindPath+"."+varName); //***
-
     //loop one
     table.forEach((x, i) => {
         $_anguleuxInterne.forScope[varName] = x;
+
+        $_anguleuxInterne.forIndexStorage[varName] = i;
+
+        let resolvedPathTable = fullyQualifiedPath.split(".");
+
+        resolvedPathTable.forEach((pathElement, index)=>{
+            if($_anguleuxInterne.forScope[pathElement] !== undefined){
+                resolvedPathTable[index] = $_anguleuxInterne.forIndexStorage[pathElement];
+            }
+        });
+
+        let resolvedPath = resolvedPathTable.join(".");
+        console.log(resolvedPath);
 
         //make and clean cloned element, set ag-template to true
         let appendedChildClone = element.parentElement.appendChild(element.cloneNode(true));
         appendedChildClone.$_objRef = $_anguleuxInterne.resolveObjectPathMoz(scope, (bindPath + ".null"));
         appendedChildClone.className = appendedChildClone.className.replace(" ag-disp-none", "");
         appendedChildClone.removeAttribute("ag-for");
+        appendedChildClone.removeAttribute("for-done");
+
+        element.$_createdElementsTable.push(appendedChildClone);
+
         //appendedChildClone.setAttribute("ag-template", "true");
 
         //get all children of child
         let agForChildren = Array.from(appendedChildClone.querySelectorAll("*[ag-for]"));
 
-        agForChildren.forEach((x) => {
-            $_anguleuxInterne.handleAgFor(x,true);
+        agForChildren.forEach((y) => {
+            $_anguleuxInterne.handleAgFor(y, true);
         });
 
-        $_anguleuxInterne.handleTemplating(appendedChildClone, $_anguleuxInterne.forScope);
+        $_anguleuxInterne.handleTemplating(appendedChildClone, resolvedPath);
 
-        /*if(hasParentFor === true){
+        /*if (hasParentFor === true) {
             //template using for scope
-            $_anguleuxInterne.handleTemplating(appendedChildClone, $_anguleuxInterne.forScope);
-        }else{
+            $_anguleuxInterne.handleTemplating(appendedChildClone, true);
+        } else {
             //template using normal scope
-            $_anguleuxInterne.handleTemplating(appendedChildClone, $scope);
+            $_anguleuxInterne.handleTemplating(appendedChildClone, false);
         }*/
 
     });
+
+    element.setAttribute("for-done", "true");
 };
 
-$_anguleuxInterne.handleTemplatingAgFor = (element) => {
-
-};
+// x : a.b.table.x
+// x.tSessions = ['x','tSessions']
+// x = a.b.table.x
+// ['a.b.table.x', 'tSessions']
+//
 
 /**
  * Handle HTML templating for an element
  * @param element HTMLElement
  */
-$_anguleuxInterne.handleTemplating = (element) => {
+$_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
     let rgxOnlyInnerHTML = /(?<=\>)(.*?)({{(?<innerTemplate>.+?)}})/gs;
     let rgxOnlyAttribute = /\S+?=("[^"]*?{{([^}]+?)}}[^"]*?")/g;
 
     let matches;
+
+    let workingHTML;
+    let outer = false;
+
+    if(!element.innerHTML.match("<")){
+        workingHTML = element.outerHTML;
+        outer = true;
+    }else{
+        workingHTML = element.innerHTML;
+        outer = false;
+    }
+
     do {
-        matches = rgxOnlyInnerHTML.exec(element.innerHTML);
+        matches = rgxOnlyInnerHTML.exec(workingHTML);
         if (matches) {
             let tmpltName = matches.groups["innerTemplate"];
-            let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
-            element.innerHTML = element.innerHTML.replace(matches[2], ("<span data-bind='" + tmpltName + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
+            if (!$scope[tmpltName.split(".")[0]]) {
+                let actBindPath = manualBindPath;
+                if(tmpltName.split(".").length === 2){
+                    actBindPath += ("."+tmpltName.split(".")[1]);
+                }
+                let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, actBindPath);
+                workingHTML = workingHTML.replace(matches[2], ("<span data-bind='" + actBindPath + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(actBindPath)] + "</span>"));
+
+            } else {
+                let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
+                workingHTML = workingHTML.replace(matches[2], ("<span data-bind='" + tmpltName + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
+            }
         }
     } while (matches);
+
+    if(outer){
+        element.outerHTML = workingHTML;
+    }else{
+        element.innerHTML = workingHTML;
+    }
 
     /*
     let attrMatches;
@@ -245,7 +319,9 @@ $_anguleuxInterne.handleTemplating = (element) => {
 
 $_anguleuxInterne.initTemplating = () => {
     let arDoubleFor = Array.from(document.querySelectorAll("[double-for=true]"));
-    let agForEls = Array.from($_anguleuxInterne.agForElements).filter((x) => {return !arDoubleFor.includes(x)});
+    let agForEls = Array.from($_anguleuxInterne.agForElements).filter((x) => {
+        return !arDoubleFor.includes(x)
+    });
     agForEls.forEach((x) => {
         try {
             $_anguleuxInterne.handleAgFor(x, false);
@@ -261,7 +337,7 @@ $_anguleuxInterne.initTemplating = () => {
     let allElements = Array.from($_anguleuxInterne.agTemplateElements).concat(Array.from($_anguleuxInterne.dataBindElements));
     allElements.forEach((x) => {
         try {
-            $_anguleuxInterne.handleTemplating(x, $scope);
+            $_anguleuxInterne.handleTemplating(x, false);
         } catch (e) {
             console.log("Error handling templating for element: ");
             console.log(x);
