@@ -27,10 +27,20 @@
 <h1 data-bind="a.b.bool"></h1>
 <p ag-template="true">lorem ipsum dolor {{a.b.bool}}sit amet consectetur {{a.b.destination}} adispicing elit</p>
 
-<table>
+<table border="1">
+    <tr>
+        <th>Nom</th>
+        <th>Prenom</th>
+        <th ag-for="h in tUsers.0.tSessions">
+            Session {{_index}}
+        </th>
+    </tr>
     <tr ag-for="x in tUsers">
         <td>
-            {{x.name}}, {{x.lastName}}
+            {{x.name}}
+        </td>
+        <td>
+            {{x.lastName}}
         </td>
         <td double-for="true" ag-for="y in x.tSessions">
             <p>{{y}}</p>

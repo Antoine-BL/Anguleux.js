@@ -205,6 +205,7 @@ $_anguleuxInterne.handleAgFor = (element) => {
     //loop one
     table.forEach((x, i) => {
         $_anguleuxInterne.forScope[varName] = x;
+        $_anguleuxInterne.forScope["_index"] = i;
 
         $_anguleuxInterne.forIndexStorage[varName] = i;
 
@@ -296,16 +297,22 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
 
                 let actBindPath = manualBindPath;
 
-                if(tmpltName.split(".").length === 2){
-                    actBindPath += ("."+tmpltName.split(".")[1]);
-                }
+                if(tmpltName === "_index"){
+                    let value = $_anguleuxInterne.forScope["_index"];
+                    workingHTML = workingHTML.replace(matches[2], ("<span for-index='" + value + "'>" + value + "</span>"));
 
-                if(!(element instanceof HTMLInputElement)){
-                    let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, actBindPath);
-                    workingHTML = workingHTML.replace(
-                        matches[2],
-                        ("<span data-bind='" + actBindPath + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(actBindPath)] + "</span>")
-                    );
+                }else{
+                    if(tmpltName.split(".").length === 2){
+                        actBindPath += ("."+tmpltName.split(".")[1]);
+                    }
+
+                    if(!(element instanceof HTMLInputElement)){
+                        let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, actBindPath);
+                        workingHTML = workingHTML.replace(
+                            matches[2],
+                            ("<span data-bind='" + actBindPath + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(actBindPath)] + "</span>")
+                        );
+                    }
                 }
 
             } else {
