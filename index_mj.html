@@ -33,7 +33,8 @@
             {{x.name}}, {{x.lastName}}
         </td>
         <td double-for="true" ag-for="y in x.tSessions">
-            {{y}}
+            <p>{{y}}</p>
+            <input name="checkbox" type="checkbox" for-bind="true">
         </td>
     </tr>
 </table>

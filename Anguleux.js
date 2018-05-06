@@ -237,6 +237,15 @@ $_anguleuxInterne.handleAgFor = (element) => {
             $_anguleuxInterne.handleAgFor(y, true);
         });
 
+        let inputChildren = Array.from(appendedChildClone.getElementsByTagName("input"));
+
+        inputChildren.forEach((inputElement) => {
+            if(inputElement.getAttribute("for-bind") === "true") {
+                inputElement.setAttribute("data-bind", resolvedPath);
+                inputElement.setAttribute("for-bind", "false");
+            }
+        });
+
         $_anguleuxInterne.handleTemplating(appendedChildClone, resolvedPath);
 
         /*if (hasParentFor === true) {
@@ -284,12 +293,20 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
         if (matches) {
             let tmpltName = matches.groups["innerTemplate"];
             if (!$scope[tmpltName.split(".")[0]]) {
+
                 let actBindPath = manualBindPath;
+
                 if(tmpltName.split(".").length === 2){
                     actBindPath += ("."+tmpltName.split(".")[1]);
                 }
-                let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, actBindPath);
-                workingHTML = workingHTML.replace(matches[2], ("<span data-bind='" + actBindPath + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(actBindPath)] + "</span>"));
+
+                if(!(element instanceof HTMLInputElement)){
+                    let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, actBindPath);
+                    workingHTML = workingHTML.replace(
+                        matches[2],
+                        ("<span data-bind='" + actBindPath + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(actBindPath)] + "</span>")
+                    );
+                }
 
             } else {
                 let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
