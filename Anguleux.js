@@ -242,8 +242,14 @@ $_anguleuxInterne.handleAgFor = (element) => {
 
         inputChildren.forEach((inputElement) => {
             if(inputElement.getAttribute("for-bind") === "true") {
-                inputElement.setAttribute("data-bind", resolvedPath);
-                inputElement.setAttribute("for-bind", "false");
+                let fbp = inputElement.getAttribute("for-bind-path");
+                if(fbp !== null){
+                    inputElement.setAttribute("data-bind", (resolvedPath + "." + fbp));
+                    inputElement.setAttribute("for-bind", "false");
+                }else{
+                    inputElement.setAttribute("data-bind", resolvedPath);
+                    inputElement.setAttribute("for-bind", "false");
+                }
             }
         });
 

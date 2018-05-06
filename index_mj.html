@@ -40,11 +40,11 @@
             {{x.name}}
         </td>
         <td>
-            {{x.lastName}}
+            <input name="tb" type="text" for-bind="true" for-bind-path="name"/>git
         </td>
-        <td double-for="true" ag-for="y in x.tSessions">
+        <td ag-for="y in x.tSessions">
             <p>{{y}}</p>
-            <input name="checkbox" type="checkbox" for-bind="true">
+            <input name="checkbox" type="checkbox" for-bind="true"/>
         </td>
     </tr>
 </table>
