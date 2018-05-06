@@ -9,7 +9,7 @@ A quick and dirty two-way model-binding implementation in vanilla JS
 
 # Usage
 
-Include Anguleux.js and AnguleuxStyle.js in <head> tag before your code.
+Include Anguleux.js and AnguleuxStyle.js in the head tag before your code.
   
 # Attributes
 
