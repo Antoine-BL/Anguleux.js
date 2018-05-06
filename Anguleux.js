@@ -299,7 +299,14 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
 
                 if(tmpltName === "_index"){
                     let value = $_anguleuxInterne.forScope["_index"];
-                    workingHTML = workingHTML.replace(matches[2], ("<span for-index='" + value + "'>" + value + "</span>"));
+                    let strOffset = element.getAttribute("index-offset");
+                    let intOffset = Number.parseInt(strOffset);
+
+                    if(strOffset){
+                        workingHTML = workingHTML.replace(matches[2], ("<span for-index='" + (value + intOffset) + "'>" + (value + intOffset) + "</span>"));
+                    }else{
+                        workingHTML = workingHTML.replace(matches[2], ("<span for-index='" + value + "'>" + value + "</span>"));
+                    }
 
                 }else{
                     if(tmpltName.split(".").length === 2){
