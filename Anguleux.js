@@ -223,6 +223,7 @@ $_anguleuxInterne.handleAgFor = (element) => {
         //make and clean cloned element, set ag-template to true
         let appendedChildClone = element.parentElement.appendChild(element.cloneNode(true));
         appendedChildClone.$_objRef = $_anguleuxInterne.resolveObjectPathMoz(scope, (bindPath + ".null"));
+        appendedChildClone.$_objIndex = i;
         appendedChildClone.className = appendedChildClone.className.replace(" ag-disp-none", "");
         appendedChildClone.removeAttribute("ag-for");
         appendedChildClone.removeAttribute("for-done");
