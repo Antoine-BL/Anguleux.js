@@ -4,7 +4,8 @@ const $_anguleuxInterne = {
     forRegistry: {},
     forIndexStorage: {},
     forScope: {},
-    forReprocessNeeded: false
+    forReprocessNeeded: false,
+    customEventListeners: []
 
 };
 
@@ -138,6 +139,15 @@ $_anguleuxInterne.initDataBinding = () => {
             el.addEventListener('keydown', () => $_anguleuxInterne.updateBinding(el));
             el.addEventListener('keyup', () => $_anguleuxInterne.updateBinding(el));
             el.addEventListener('mousedown', () => $_anguleuxInterne.updateBinding(el));
+
+            if($_anguleuxInterne.customEventListeners.length > 0){
+                $_anguleuxInterne.customEventListeners.forEach(eventList => {
+                    el.addEventListener('change', (e) => eventList(e));
+                    el.addEventListener('keydown', (e) => eventList(e));
+                    el.addEventListener('keyup', (e) => eventList(e));
+                    el.addEventListener('mousedown', (e) => eventList(e));
+                });
+            }
 
             id++;
         }
