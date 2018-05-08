@@ -17,10 +17,10 @@
 <body>
 <input data-bind="a.b.destination" validate="^(https:\/\/).*" type="text" value=""/>
 <h1 data-bind="a.b.destination"></h1>
-<h2 data-bind="a.b.destination"></h2>
+<h2 attrib-bind-obj="inputHrefOBJ" data-bind="a.b.destination"></h2>
 <input data-bind="a.b.table.1" type="text" value=""/>
 <ul>
-    <li ag-for="x in a.b.table">adfasdf adsf asdf ads f <a>{{x}}</a> d fadsf asd fasdf adsf asdf {{a.b.destination}} asdfasdf asfd</li>
+    <li ag-for="x in a.b.table">lorem ipsum dolor <a attrib-bind-obj="forHREF">{{x}}</a> sit amet {{a.b.destination}} consectetur adispising elit</li>
 </ul>
 
 <input data-bind="a.b.bool" type="checkbox" checked="true"/>

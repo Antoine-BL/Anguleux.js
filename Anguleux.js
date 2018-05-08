@@ -2,6 +2,7 @@ const $_anguleuxInterne = {
 
     bindingMap: {},
     forRegistry: {},
+    attrRegistry: {},
     forIndexStorage: {},
     forScope: {},
     forReprocessNeeded: false,
@@ -51,8 +52,15 @@ $_anguleuxInterne.getDestinationName = (objectPath) => {
 
 window.$scope = {
 
+    forHREF: {
+
+        href: '{{x}}'
+
+    },
+
     a: {
         b: {
+            hyperLien: "https://google.ca",
             table: ["http://google.ca", "http://bing.com", "http://yahoo.ca", "http://duckduckgo.org"],
             destination: "destinationPropertyValue",
             bool: false
@@ -80,6 +88,12 @@ window.$scope = {
 $_anguleuxInterne.bindElement = (element, init) => {
     let strAttrDataBind = element.getAttribute("data-bind");
     let strBinAttrTemplate = element.getAttribute("ag-template");
+
+    //Bind attribute
+    if(element.hasAttribute("attrib-bind-obj")){
+        $_anguleuxInterne.updateAttributes(element);
+    }
+
     if (element instanceof HTMLInputElement) {
         if (init) {
             if (element.type === "checkbox") {
@@ -91,14 +105,14 @@ $_anguleuxInterne.bindElement = (element, init) => {
             if (element.type === "checkbox") {
                 element.$_objRef[$_anguleuxInterne.getDestinationName(strAttrDataBind)] = element.checked;
             } else {
-                if(element.type === "text" && element.hasAttribute("validate")){
+                if (element.type === "text" && element.hasAttribute("validate")) {
                     let rgx = new RegExp(element.getAttribute("validate"));
                     element.$_isValid = false;
-                    if(element.value.match(rgx)){
+                    if (element.value.match(rgx)) {
                         element.$_isValid = true;
                     }
                     element.$_objRef[$_anguleuxInterne.getDestinationName(strAttrDataBind)] = element.value;
-                }else{
+                } else {
                     element.$_objRef[$_anguleuxInterne.getDestinationName(strAttrDataBind)] = element.value;
                 }
             }
@@ -149,7 +163,7 @@ $_anguleuxInterne.initDataBinding = () => {
             el.addEventListener('keyup', () => $_anguleuxInterne.updateBinding(el));
             el.addEventListener('mousedown', () => $_anguleuxInterne.updateBinding(el));
 
-            if($_anguleuxInterne.customEventListeners.length > 0){
+            if ($_anguleuxInterne.customEventListeners.length > 0) {
                 $_anguleuxInterne.customEventListeners.forEach(eventList => {
                     el.addEventListener('change', (e) => eventList(e));
                     el.addEventListener('keydown', (e) => eventList(e));
@@ -184,7 +198,7 @@ $_anguleuxInterne.handleAgFor = (element) => {
     let parentForVariable = parsed[2].split(".")[0];
     let tableDestinationName = $_anguleuxInterne.getDestinationName(bindPath);
 
-    if(element.getAttribute("for-done") === "true"){
+    if (element.getAttribute("for-done") === "true") {
         element.$_createdElementsTable.forEach((z) => {
             z.remove(); //begone
         });
@@ -197,7 +211,7 @@ $_anguleuxInterne.handleAgFor = (element) => {
 
     let a = $_anguleuxInterne.forRegistry[varName].split(".");
 
-    if($_anguleuxInterne.forRegistry[a[0]] !== undefined){
+    if ($_anguleuxInterne.forRegistry[a[0]] !== undefined) {
         a[0] = $_anguleuxInterne.forRegistry[a[0]];
         $_anguleuxInterne.forRegistry[varName] = a.join(".");
     }
@@ -205,7 +219,7 @@ $_anguleuxInterne.handleAgFor = (element) => {
     let fullyQualifiedPath = $_anguleuxInterne.forRegistry[varName];
 
     //hide original for element
-    if(!element.classList.contains("ag-disp-none"))
+    if (!element.classList.contains("ag-disp-none"))
         element.className += " ag-disp-none";
 
     let table;
@@ -230,8 +244,8 @@ $_anguleuxInterne.handleAgFor = (element) => {
 
         let resolvedPathTable = fullyQualifiedPath.split(".");
 
-        resolvedPathTable.forEach((pathElement, index)=>{
-            if($_anguleuxInterne.forScope[pathElement] !== undefined){
+        resolvedPathTable.forEach((pathElement, index) => {
+            if ($_anguleuxInterne.forScope[pathElement] !== undefined) {
                 resolvedPathTable[index] = $_anguleuxInterne.forIndexStorage[pathElement];
             }
         });
@@ -261,12 +275,12 @@ $_anguleuxInterne.handleAgFor = (element) => {
         let inputChildren = Array.from(appendedChildClone.getElementsByTagName("input"));
 
         inputChildren.forEach((inputElement) => {
-            if(inputElement.getAttribute("for-bind") === "true") {
+            if (inputElement.getAttribute("for-bind") === "true") {
                 let fbp = inputElement.getAttribute("for-bind-path");
-                if(fbp !== null){
+                if (fbp !== null) {
                     inputElement.setAttribute("data-bind", (resolvedPath + "." + fbp));
                     inputElement.setAttribute("for-bind", "false");
-                }else{
+                } else {
                     inputElement.setAttribute("data-bind", resolvedPath);
                     inputElement.setAttribute("for-bind", "false");
                 }
@@ -307,10 +321,10 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
     let workingHTML;
     let outer = false;
 
-    if(!element.innerHTML.match("<")){
+    if (!element.innerHTML.match("<")) {
         workingHTML = element.outerHTML;
         outer = true;
-    }else{
+    } else {
         workingHTML = element.innerHTML;
         outer = false;
     }
@@ -323,23 +337,23 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
 
                 let actBindPath = manualBindPath;
 
-                if(tmpltName === "_index"){
+                if (tmpltName === "_index") {
                     let value = $_anguleuxInterne.forScope["_index"];
                     let strOffset = element.getAttribute("index-offset");
                     let intOffset = Number.parseInt(strOffset);
 
-                    if(strOffset){
+                    if (strOffset) {
                         workingHTML = workingHTML.replace(matches[2], ("<span for-index='" + (value + intOffset) + "'>" + (value + intOffset) + "</span>"));
-                    }else{
+                    } else {
                         workingHTML = workingHTML.replace(matches[2], ("<span for-index='" + value + "'>" + value + "</span>"));
                     }
 
-                }else{
-                    if(tmpltName.split(".").length === 2){
-                        actBindPath += ("."+tmpltName.split(".")[1]);
+                } else {
+                    if (tmpltName.split(".").length === 2) {
+                        actBindPath += ("." + tmpltName.split(".")[1]);
                     }
 
-                    if(!(element instanceof HTMLInputElement)){
+                    if (!(element instanceof HTMLInputElement)) {
                         let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, actBindPath);
                         workingHTML = workingHTML.replace(
                             matches[2],
@@ -355,23 +369,107 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
         }
     } while (matches);
 
-    if(outer){
+    if (outer) {
         element.outerHTML = workingHTML;
-    }else{
+    } else {
         element.innerHTML = workingHTML;
     }
 
-    /*
-    let attrMatches;
-    do{
-        let tmpltName = matches[2];
-        attrMatches = rgxOnlyAttribute.exec(element.outerHTML);
-        if(attrMatches){
-            let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName);
-            let
+    if(element.hasAttribute("attrib-bind-obj") || element.querySelectorAll("*[attrib-bind-obj]").length > 0){
+        $_anguleuxInterne.resolveAttributeTemplate(element, manualBindPath);
+        Array.from(element.querySelectorAll("*[attrib-bind-obj]")).forEach((childElement) => {
+            $_anguleuxInterne.resolveAttributeTemplate(childElement, manualBindPath);
+        });
+    }
+};
+
+$_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
+    if (element.hasAttribute("attrib-bind-obj")) {
+        let attrBindObj = $_anguleuxInterne.resolveObjectPathMoz($scope, element.getAttribute("attrib-bind-obj"))[$_anguleuxInterne.getDestinationName(element.getAttribute("attrib-bind-obj"))];
+
+        for (let attr in attrBindObj) {
+            if (attrBindObj.hasOwnProperty(attr)) {
+                //iterate through props
+                let rgx = /.*({{(?<tmplt>.*)}}).*/gs;
+
+                let workingString = attrBindObj[attr];
+
+                let matches;
+                do {
+                    matches = rgx.exec(workingString);
+                    if(matches){
+                        let tmpltName = matches.groups["tmplt"];
+                        let wholeTmpl = matches[1];
+
+                        if (!$scope[tmpltName.split(".")[0]]) {
+                            //Cant find root var in template in the global scope, use manualBindPath from the for-loop
+                            let actBindPath = manualBindPath;
+                            if (tmpltName.split(".").length === 2) {
+                                actBindPath += ("." + tmpltName.split(".")[1]);
+                            }
+
+                            workingString = workingString.replace(tmpltName, actBindPath);
+                            attrBindObj[attr] = workingString;
+                            $_anguleuxInterne.updateAttributes(element);
+                        } else {
+                            let actBindPath = tmpltName;
+                            if (tmpltName.split(".").length === 2) {
+                                actBindPath += ("." + tmpltName.split(".")[1]);
+                            }
+
+                            workingString = workingString.replace(tmpltName, actBindPath);
+                            attrBindObj[attr] = workingString;
+                            $_anguleuxInterne.updateAttributes(element);
+                        }
+                    }
+                } while (matches)
+            }
         }
-    }while(matches);
-    */
+    }
+};
+
+/**
+ * Handles templating / binding for attributes.
+ * Element must have attrib-bind-obj="someObjectInScope" where someObjectInScope is { attributeName: "lorem {{var}} ipsum"}
+ * Variables inside template may be in global $scope or forScope and will be resolved in that order.
+ * @param element
+ */
+$_anguleuxInterne.updateAttributes = (element, setStaticWhenDone) => {
+
+    if (element.hasAttribute("attrib-bind-obj")) {
+        let attrBindObj = $_anguleuxInterne.resolveObjectPathMoz($scope, element.getAttribute("attrib-bind-obj"))[$_anguleuxInterne.getDestinationName(element.getAttribute("attrib-bind-obj"))];
+
+        for (let attr in attrBindObj) {
+            if (attrBindObj.hasOwnProperty(attr)) {
+                //iterate through props
+                let rgx = /.*({{(?<tmplt>.*)}}).*/gs;
+
+                let workingString = attrBindObj[attr];
+
+                let matches;
+                do {
+                    matches = rgx.exec(workingString);
+                    if(matches){
+                        let tmpltName = matches.groups["tmplt"];
+                        let wholeTmpl = matches[1];
+
+                        let value = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName)[$_anguleuxInterne.getDestinationName(tmpltName)];
+
+                        workingString = workingString.replace(wholeTmpl, value);
+                    }
+                } while (matches)
+
+                element.setAttribute(attr, workingString);
+
+                //attrBindObj[attr] =
+
+                //TODO : Prevent attributes created in for loops with for variables from being overwritten with the last value saved
+
+                console.log("str : " + workingString)
+
+            }
+        }
+    }
 };
 
 $_anguleuxInterne.initTemplating = () => {
