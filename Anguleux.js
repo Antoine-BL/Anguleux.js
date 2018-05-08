@@ -91,7 +91,16 @@ $_anguleuxInterne.bindElement = (element, init) => {
             if (element.type === "checkbox") {
                 element.$_objRef[$_anguleuxInterne.getDestinationName(strAttrDataBind)] = element.checked;
             } else {
-                element.$_objRef[$_anguleuxInterne.getDestinationName(strAttrDataBind)] = element.value;
+                if(element.type === "text" && element.hasAttribute("validate")){
+                    let rgx = new RegExp(element.getAttribute("validate"));
+                    element.$_isValid = false;
+                    if(element.value.match(rgx)){
+                        element.$_isValid = true;
+                    }
+                    element.$_objRef[$_anguleuxInterne.getDestinationName(strAttrDataBind)] = element.value;
+                }else{
+                    element.$_objRef[$_anguleuxInterne.getDestinationName(strAttrDataBind)] = element.value;
+                }
             }
         }
     }
