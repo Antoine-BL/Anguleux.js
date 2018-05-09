@@ -5,6 +5,7 @@ const $_anguleuxInterne = {
     attrRegistry: {},
     forIndexStorage: {},
     forScope: {},
+    staticAttributeRegistry: {},
     forReprocessNeeded: false,
     customEventListeners: []
 
@@ -54,7 +55,8 @@ window.$scope = {
 
     forHREF: {
 
-        href: '{{x}}'
+        href: '{{x}}',
+        style: '{{a.b.style}}'
 
     },
 
@@ -63,7 +65,8 @@ window.$scope = {
             hyperLien: "https://google.ca",
             table: ["http://google.ca", "http://bing.com", "http://yahoo.ca", "http://duckduckgo.org"],
             destination: "destinationPropertyValue",
-            bool: false
+            bool: false,
+            style: 'background-color: #FFF;'
         }
     },
     tUsers: [
@@ -90,7 +93,7 @@ $_anguleuxInterne.bindElement = (element, init) => {
     let strBinAttrTemplate = element.getAttribute("ag-template");
 
     //Bind attribute
-    if(element.hasAttribute("attrib-bind-obj")){
+    if (element.hasAttribute("attrib-bind-obj")) {
         $_anguleuxInterne.updateAttributes(element);
     }
 
@@ -375,7 +378,7 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
         element.innerHTML = workingHTML;
     }
 
-    if(element.hasAttribute("attrib-bind-obj") || element.querySelectorAll("*[attrib-bind-obj]").length > 0){
+    if (element.hasAttribute("attrib-bind-obj") || element.querySelectorAll("*[attrib-bind-obj]").length > 0) {
         $_anguleuxInterne.resolveAttributeTemplate(element, manualBindPath);
         Array.from(element.querySelectorAll("*[attrib-bind-obj]")).forEach((childElement) => {
             $_anguleuxInterne.resolveAttributeTemplate(childElement, manualBindPath);
@@ -397,7 +400,7 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
                 let matches;
                 do {
                     matches = rgx.exec(workingString);
-                    if(matches){
+                    if (matches) {
                         let tmpltName = matches.groups["tmplt"];
                         let wholeTmpl = matches[1];
 
@@ -410,7 +413,18 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
 
                             workingString = workingString.replace(tmpltName, actBindPath);
                             attrBindObj[attr] = workingString;
+
+                            if (!element.$_staticAttribs)
+                                element.$_staticAttribs = [];
+
+                            element.$_staticAttribs.push(attr);
+
                             $_anguleuxInterne.updateAttributes(element);
+
+                            workingString = workingString.replace(actBindPath, tmpltName); //These two lines tho
+                            attrBindObj[attr] = workingString;
+
+                            element.removeAttribute("attrib-bind-obj");
                         } else {
                             let actBindPath = tmpltName;
                             if (tmpltName.split(".").length === 2) {
@@ -433,41 +447,41 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
  * Element must have attrib-bind-obj="someObjectInScope" where someObjectInScope is { attributeName: "lorem {{var}} ipsum"}
  * Variables inside template may be in global $scope or forScope and will be resolved in that order.
  * @param element
+ * @param init
  */
-$_anguleuxInterne.updateAttributes = (element, setStaticWhenDone) => {
+$_anguleuxInterne.updateAttributes = (element) => {
 
     if (element.hasAttribute("attrib-bind-obj")) {
         let attrBindObj = $_anguleuxInterne.resolveObjectPathMoz($scope, element.getAttribute("attrib-bind-obj"))[$_anguleuxInterne.getDestinationName(element.getAttribute("attrib-bind-obj"))];
 
         for (let attr in attrBindObj) {
-            if (attrBindObj.hasOwnProperty(attr)) {
-                //iterate through props
-                let rgx = /.*({{(?<tmplt>.*)}}).*/gs;
 
-                let workingString = attrBindObj[attr];
+            //iterate through props
+            let rgx = /.*({{(?<tmplt>.*)}}).*/gs;
 
-                let matches;
-                do {
-                    matches = rgx.exec(workingString);
-                    if(matches){
-                        let tmpltName = matches.groups["tmplt"];
-                        let wholeTmpl = matches[1];
+            let workingString = attrBindObj[attr];
 
-                        let value = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName)[$_anguleuxInterne.getDestinationName(tmpltName)];
+            let matches;
+            do {
+                matches = rgx.exec(workingString);
+                if (matches) {
+                    let tmpltName = matches.groups["tmplt"];
+                    let wholeTmpl = matches[1];
 
-                        workingString = workingString.replace(wholeTmpl, value);
-                    }
-                } while (matches)
+                    let value = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName)[$_anguleuxInterne.getDestinationName(tmpltName)];
 
-                element.setAttribute(attr, workingString);
+                    workingString = workingString.replace(wholeTmpl, value);
+                }
+            } while (matches);
 
-                //attrBindObj[attr] =
+            element.setAttribute(attr, workingString);
 
-                //TODO : Prevent attributes created in for loops with for variables from being overwritten with the last value saved
+            //attrBindObj[attr] =
 
-                console.log("str : " + workingString)
+            //TODO : Prevent attributes created in for loops with for variables from being overwritten with the last value saved
 
-            }
+            console.log("str : " + workingString)
+            
         }
     }
 };
