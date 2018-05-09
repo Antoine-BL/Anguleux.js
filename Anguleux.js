@@ -201,11 +201,23 @@ $_anguleuxInterne.handleAgFor = (element) => {
     let parentForVariable = parsed[2].split(".")[0];
     let tableDestinationName = $_anguleuxInterne.getDestinationName(bindPath);
 
+    //For update
     if (element.getAttribute("for-done") === "true") {
-        element.$_createdElementsTable.forEach((z) => {
-            z.remove(); //begone
+        //Get all child for-loops
+        let allChildAgFor = Array.from(element.querySelectorAll("*[ag-for]"));
+
+        allChildAgFor.forEach((x) => {
+            if(x.$_createdElementsTable){
+                x.$_createdElementsTable.forEach((x) => x.remove()); //begone
+            }
         });
-        element.setAttribute("for-done", "false");
+
+        if(element.$_createdElementsTable){
+            element.$_createdElementsTable.forEach((z) => {
+                z.remove(); //begone
+            });
+            element.setAttribute("for-done", "false");
+        }
     }
 
     element.$_createdElementsTable = [];
@@ -513,4 +525,12 @@ $_anguleuxInterne.initTemplating = () => {
             console.log(e);
         }
     });
+};
+
+$_anguleuxInterne.updateAgFor = (element) => {
+
+    $_anguleuxInterne.handleAgFor(element);
+    $_anguleuxInterne.initElements();
+    $_anguleuxInterne.initDataBinding();
+
 };

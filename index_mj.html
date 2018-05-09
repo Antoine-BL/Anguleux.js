@@ -17,7 +17,7 @@
 <body>
 <input data-bind="a.b.destination" validate="^(https:\/\/).*" type="text" value=""/>
 <h1 data-bind="a.b.destination"></h1>
-<h2 attrib-bind-obj="inputHrefOBJ" data-bind="a.b.destination"></h2>
+<h2 attrib-bind-obj="forHREF" data-bind="a.b.destination"></h2>
 <input data-bind="a.b.table.1" type="text" value=""/>
 <ul>
     <li ag-for="x in a.b.table">lorem ipsum dolor <a attrib-bind-obj="forHREF">{{x}}</a> sit amet {{a.b.destination}} consectetur adispising elit</li>
@@ -35,7 +35,7 @@
             Session {{_index}}
         </th>
     </tr>
-    <tr ag-for="x in tUsers">
+    <tr ag-for="x in tUsers" id="bug">
         <td>
             {{x.name}}
         </td>
