@@ -141,6 +141,7 @@ $_anguleuxInterne.updateBinding = (element, init) => {
     $_anguleuxInterne.bindingMap[strAttrDataBind].forEach((x) => $_anguleuxInterne.bindElement(x, init));
 };
 
+$_anguleuxInterne.EventList = ['change', 'keyup', 'keydown', 'mousedown'];
 
 $_anguleuxInterne.initDataBinding = () => {
     //Get elements and bind them
@@ -161,19 +162,27 @@ $_anguleuxInterne.initDataBinding = () => {
                 $_anguleuxInterne.bindingMap[strAttrDataBind] = [];
             $_anguleuxInterne.bindingMap[strAttrDataBind].push(el);
 
-            el.addEventListener('change', () => $_anguleuxInterne.updateBinding(el));
-            el.addEventListener('keydown', () => $_anguleuxInterne.updateBinding(el));
-            el.addEventListener('keyup', () => $_anguleuxInterne.updateBinding(el));
-            el.addEventListener('mousedown', () => $_anguleuxInterne.updateBinding(el));
+            $_anguleuxInterne.EventList.forEach((eventName) => {
+                el.addEventListener(eventName, (e) => {
+                    if(e.$_init){
+                        $_anguleuxInterne.updateBinding(el, e.$_init);
 
-            if ($_anguleuxInterne.customEventListeners.length > 0) {
-                $_anguleuxInterne.customEventListeners.forEach(eventList => {
-                    el.addEventListener('change', (e) => eventList(e));
-                    el.addEventListener('keydown', (e) => eventList(e));
-                    el.addEventListener('keyup', (e) => eventList(e));
-                    el.addEventListener('mousedown', (e) => eventList(e));
+                        if ($_anguleuxInterne.customEventListeners.length > 0) {
+                            $_anguleuxInterne.customEventListeners.forEach(eventList => {
+                                el.addEventListener(eventName, (e) => eventList(e, e.$_init));
+                            });
+                        }
+                    }else{
+                        $_anguleuxInterne.updateBinding(el);
+
+                        if ($_anguleuxInterne.customEventListeners.length > 0) {
+                            $_anguleuxInterne.customEventListeners.forEach(eventList => {
+                                el.addEventListener(eventName, (e) => eventList(e));
+                            });
+                        }
+                    }
                 });
-            }
+            });
 
             id++;
         }
@@ -532,5 +541,17 @@ $_anguleuxInterne.updateAgFor = (element) => {
     $_anguleuxInterne.handleAgFor(element);
     $_anguleuxInterne.initElements();
     $_anguleuxInterne.initDataBinding();
+
+};
+
+/**
+ * Will update all elements associated with the specified object path.
+ * NOTE : will not work with for scope.
+ * @param init boolean if init is false, inputs will be overwritten; otherwise the object will.
+ * @param strObjPath string object path
+ */
+$_anguleuxInterne.updateAllWithBinding = (strObjPath, init) => {
+
+    $_anguleuxInterne.updateBinding($_anguleuxInterne.bindingMap[strObjPath][0], init);
 
 };
