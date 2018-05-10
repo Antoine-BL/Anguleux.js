@@ -113,7 +113,7 @@ $_anguleuxInterne.bindElement = (element, init) => {
         $_anguleuxInterne.updateAttributes(element);
     }
 
-    if (element instanceof HTMLInputElement) {
+    if ((element instanceof HTMLInputElement) || (element instanceof HTMLSelectElement)) {
         if (init) {
             if (element.type === "checkbox") {
                 element.checked = element.$_objRef[$_anguleuxInterne.getDestinationName(strAttrDataBind)];
@@ -137,7 +137,7 @@ $_anguleuxInterne.bindElement = (element, init) => {
             }
         }
     }
-    if (!(element instanceof HTMLInputElement)) {
+    if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLSelectElement)) {
         if (strBinAttrTemplate === "true") {
             $_anguleuxInterne.handleTemplating(element);
         } else {
@@ -312,7 +312,7 @@ $_anguleuxInterne.handleAgFor = (element) => {
             $_anguleuxInterne.handleAgFor(y, true);
         });
 
-        let inputChildren = Array.from(appendedChildClone.getElementsByTagName("input"));
+        let inputChildren = Array.from(appendedChildClone.querySelectorAll('input,select'));
 
         inputChildren.forEach((inputElement) => {
             if (inputElement.getAttribute("for-bind") === "true") {
@@ -393,7 +393,7 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
                         actBindPath += ("." + tmpltName.split(".")[1]);
                     }
 
-                    if (!(element instanceof HTMLInputElement)) {
+                    if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLSelectElement)) {
                         let resolvedParentObject = $_anguleuxInterne.resolveObjectPathMoz($scope, actBindPath);
                         workingHTML = workingHTML.replace(
                             matches[2],
@@ -410,9 +410,9 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
     } while (matches);
 
     if (outer) {
-        element.outerHTML = workingHTML;
+            element.outerHTML = workingHTML;
     } else {
-        element.innerHTML = workingHTML;
+            element.innerHTML = workingHTML;
     }
 
     if (element.hasAttribute("attrib-bind-obj") || element.querySelectorAll("*[attrib-bind-obj]").length > 0) {
