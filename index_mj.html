@@ -37,6 +37,7 @@
     <tr>
         <th>Nom</th>
         <th>Prenom</th>
+        <th>Categorie</th>
         <th ag-for="h in tUsers.0.tSessions" index-offset="1">
             Session {{_index}}
         </th>
@@ -49,7 +50,7 @@
             <input name="tb" type="text" for-bind="true" for-bind-path="name"/>
         </td>
         <td ag-for="y in x.tSessions">
-            <p>{{y}}</p>
+            <p attrib-bind-obj="test">{{y}}</p>
             <input name="checkbox" type="checkbox" for-bind="true"/>
         </td>
         <td>

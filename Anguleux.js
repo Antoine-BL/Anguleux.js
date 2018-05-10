@@ -64,6 +64,10 @@ window.$scope = {
         value: '{{x.categorie}}'
     },
 
+    test:{
+        testattr: '{{y}}'
+    },
+
     a: {
         b: {
             hyperLien: "https://google.ca",
