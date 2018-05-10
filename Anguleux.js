@@ -60,6 +60,10 @@ window.$scope = {
 
     },
 
+    ddlValueBind: {
+        value: '{{x.categorie}}'
+    },
+
     a: {
         b: {
             hyperLien: "https://google.ca",
@@ -73,14 +77,22 @@ window.$scope = {
         {
             name: "User1",
             lastName: "User1",
-            tSessions: [false, true, true]
+            tSessions: [false, true, true],
+            categorie: 'Test'
         },
         {
             name: "User2",
             lastName: "User2",
-            tSessions: [true, true, true]
+            tSessions: [true, true, true],
+            categorie: 'Test2'
         }
-    ]
+    ],
+
+    model: {
+        tCategories: [
+            {"id": "1", "description": "Test"},
+            {"id": "2", "description": "Test2"}]
+    }
 };
 
 /**
@@ -164,7 +176,7 @@ $_anguleuxInterne.initDataBinding = () => {
 
             $_anguleuxInterne.EventList.forEach((eventName) => {
                 el.addEventListener(eventName, (e) => {
-                    if(e.$_init){
+                    if (e.$_init) {
                         $_anguleuxInterne.updateBinding(el, e.$_init);
 
                         if ($_anguleuxInterne.customEventListeners.length > 0) {
@@ -172,7 +184,7 @@ $_anguleuxInterne.initDataBinding = () => {
                                 el.addEventListener(eventName, (e) => eventList(e, e.$_init));
                             });
                         }
-                    }else{
+                    } else {
                         $_anguleuxInterne.updateBinding(el);
 
                         if ($_anguleuxInterne.customEventListeners.length > 0) {
@@ -216,12 +228,12 @@ $_anguleuxInterne.handleAgFor = (element) => {
         let allChildAgFor = Array.from(element.querySelectorAll("*[ag-for]"));
 
         allChildAgFor.forEach((x) => {
-            if(x.$_createdElementsTable){
+            if (x.$_createdElementsTable) {
                 x.$_createdElementsTable.forEach((x) => x.remove()); //begone
             }
         });
 
-        if(element.$_createdElementsTable){
+        if (element.$_createdElementsTable) {
             element.$_createdElementsTable.forEach((z) => {
                 z.remove(); //begone
             });
@@ -495,14 +507,20 @@ $_anguleuxInterne.updateAttributes = (element) => {
                 }
             } while (matches);
 
+
             element.setAttribute(attr, workingString);
+
+            if(element instanceof HTMLSelectElement && element.hasAttribute('value')){
+                element.value = element.getAttribute('value');
+                console.log('EVIIIIIIIIIIIIL : https://www.youtube.com/watch?v=zQ0c4_P2uno' );
+            }
 
             //attrBindObj[attr] =
 
             //TODO : Prevent attributes created in for loops with for variables from being overwritten with the last value saved
 
             console.log("str : " + workingString)
-            
+
         }
     }
 };
