@@ -55,6 +55,7 @@ window.$scope = {
 
     forHREF: {
 
+        test: '{{x}}__{{x}}',
         href: '{{x}}',
         style: '{{a.b.style}}'
 
@@ -456,12 +457,14 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
 
                             element.$_staticAttribs.push(attr);
 
-                            $_anguleuxInterne.updateAttributes(element);
+                            element.$_stat = true;
 
-                            workingString = workingString.replace(actBindPath, tmpltName); //These two lines tho
-                            attrBindObj[attr] = workingString;
+                            //$_anguleuxInterne.updateAttributes(element);
 
-                            element.removeAttribute("attrib-bind-obj");
+                            //workingString = workingString.replace(actBindPath, tmpltName); //These two lines tho
+                            //attrBindObj[attr] = workingString;
+
+                            //element.removeAttribute("attrib-bind-obj");
                         } else {
                             let actBindPath = tmpltName;
                             if (tmpltName.split(".").length === 2) {
@@ -470,12 +473,19 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
 
                             workingString = workingString.replace(tmpltName, actBindPath);
                             attrBindObj[attr] = workingString;
-                            $_anguleuxInterne.updateAttributes(element);
+                            //$_anguleuxInterne.updateAttributes(element);
                         }
                     }
-                } while (matches)
+                } while (matches);
+
             }
         }
+
+        $_anguleuxInterne.updateAttributes(element);
+        if(element.$_stat === true){
+            element.removeAttribute("attrib-bind-obj");
+        }
+
     }
 };
 
