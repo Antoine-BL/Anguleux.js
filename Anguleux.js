@@ -430,7 +430,7 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
         for (let attr in attrBindObj) {
             if (attrBindObj.hasOwnProperty(attr)) {
                 //iterate through props
-                let rgx = /.*({{(?<tmplt>.*)}}).*/gs;
+                let rgx = /(.*?)({{(?<tmplt>.+?)}})/gs;
 
                 let workingString = attrBindObj[attr];
 
@@ -439,7 +439,7 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
                     matches = rgx.exec(workingString);
                     if (matches) {
                         let tmpltName = matches.groups["tmplt"];
-                        let wholeTmpl = matches[1];
+                        let wholeTmpl = matches[2];
 
                         if (!$scope[tmpltName.split(".")[0]]) {
                             //Cant find root var in template in the global scope, use manualBindPath from the for-loop
@@ -494,7 +494,7 @@ $_anguleuxInterne.updateAttributes = (element) => {
         for (let attr in attrBindObj) {
 
             //iterate through props
-            let rgx = /.*({{(?<tmplt>.*)}}).*/gs;
+            let rgx = /(.*?)({{(?<tmplt>.+?)}})/gs;
 
             let workingString = attrBindObj[attr];
 
@@ -503,7 +503,7 @@ $_anguleuxInterne.updateAttributes = (element) => {
                 matches = rgx.exec(workingString);
                 if (matches) {
                     let tmpltName = matches.groups["tmplt"];
-                    let wholeTmpl = matches[1];
+                    let wholeTmpl = matches[2];
 
                     let value = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName)[$_anguleuxInterne.getDestinationName(tmpltName)];
 
