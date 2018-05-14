@@ -5,7 +5,7 @@ A quick and dirty two-way model-binding implementation in vanilla JS
 # Authors
 
  - Michael-John Sakellaropoulos : Full implementation and further development
- - Antoine-Brassad Lahey : Idea and Proof of concept
+ - Antoine-Brassad Lahey : Proof of concept
 
 # Usage
 
