@@ -408,7 +408,7 @@ $_anguleuxInterne.handleTemplating = (element, manualBindPath) => {
                 workingHTML = workingHTML.replace(matches[2], ("<span data-bind='" + tmpltName + "'>" + resolvedParentObject[$_anguleuxInterne.getDestinationName(tmpltName)] + "</span>"));
             }
         }
-    } while (matches);
+    } while (matches && matches.groups["innerTemplate"] !== undefined);
 
     if (outer) {
             element.outerHTML = workingHTML;
