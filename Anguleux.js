@@ -110,9 +110,9 @@ $_anguleuxInterne.bindElement = (element, init) => {
     let strBinAttrTemplate = element.getAttribute("ag-template");
 
     //Bind attribute
-    if (element.hasAttribute("attrib-bind-obj")) {
-        $_anguleuxInterne.updateAttributes(element);
-    }
+    //if (element.hasAttribute("attrib-bind-obj")) {
+    //    $_anguleuxInterne.updateAttributes(element);
+    //}
 
     if ((element instanceof HTMLInputElement) || (element instanceof HTMLSelectElement)) {
         if (init) {
@@ -441,53 +441,39 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
                     if (matches) {
                         let tmpltName = matches.groups["tmplt"];
                         let wholeTmpl = matches[2];
+                        let actBindPath = "";
 
                         if (!$scope[tmpltName.split(".")[0]]) {
                             //Cant find root var in template in the global scope, use manualBindPath from the for-loop
-                            let actBindPath = manualBindPath;
-                            if (tmpltName.split(".").length === 2) {
-                                actBindPath += ("." + tmpltName.split(".")[1]);
-                            }
-
-                            workingString = workingString.replace(tmpltName, actBindPath);
-                            attrBindObj[attr] = workingString;
-
-                            if (!element.$_staticAttribs)
-                                element.$_staticAttribs = [];
-
-                            element.$_staticAttribs.push(attr);
-
-                            element.$_stat = true;
-
-                            $_anguleuxInterne.updateAttributes(element, "{{"+actBindPath+"}}");
-
-                            workingString = workingString.replace(actBindPath, tmpltName); //These two lines tho
-                            attrBindObj[attr] = workingString;
-
-                            //element.removeAttribute("attrib-bind-obj");
+                            actBindPath = manualBindPath;
                         } else {
-                            let actBindPath = tmpltName;
-                            if (tmpltName.split(".").length === 2) {
-                                actBindPath += ("." + tmpltName.split(".")[1]);
-                            }
-
-                            workingString = workingString.replace(tmpltName, actBindPath);
-                            attrBindObj[attr] = workingString;
-                            //$_anguleuxInterne.updateAttributes(element);
+                            actBindPath = tmpltName;
                         }
+
+                        if (tmpltName.split(".").length === 2) {
+                            actBindPath += ("." + tmpltName.split(".")[1]);
+                        }
+
+                        if(typeof actBindPath === 'string' || actBindPath instanceof String){
+                            let value = $_anguleuxInterne.resolveObjectPathMoz($scope, actBindPath)[$_anguleuxInterne.getDestinationName(actBindPath)];
+                            workingString = workingString.replace(wholeTmpl, value);
+                        }
+
                     }
                 } while (matches);
+
+                element.setAttribute(attr, workingString);
 
             }
         }
 
-        if(element.$_stat !== true){
+       /*if(element.$_stat !== true){
             $_anguleuxInterne.updateAttributes(element);
         }
 
-        if(element.$_stat === true){
+       if(element.$_stat === true){
             //element.removeAttribute("attrib-bind-obj");
-        }
+       }*/
 
     }
 };
@@ -524,13 +510,16 @@ $_anguleuxInterne.updateAttributes = (element, onlyThisOne) => {
                         workingString = workingString.replace(wholeTmpl, value);
                     }
                 } while (matches);
-            }
+            }else if(attr === onlyThisOne){
 
-            if(onlyThisOne !== undefined){
-                let matches = rgx.exec(workingString);
+                matches = rgx.exec(workingString);
                 let tmpltName = matches.groups["tmplt"];
+                let wholeTmpl = matches[2];
+
                 let value = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName)[$_anguleuxInterne.getDestinationName(tmpltName)];
-                workingString = workingString.replace(onlyThisOne, value);
+
+                workingString = workingString.replace(wholeTmpl, value);
+
             }
 
             element.setAttribute(attr, workingString);
