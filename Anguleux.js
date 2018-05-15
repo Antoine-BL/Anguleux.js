@@ -459,10 +459,10 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
 
                             element.$_stat = true;
 
-                            //$_anguleuxInterne.updateAttributes(element);
+                            $_anguleuxInterne.updateAttributes(element, "{{"+actBindPath+"}}");
 
-                            //workingString = workingString.replace(actBindPath, tmpltName); //These two lines tho
-                            //attrBindObj[attr] = workingString;
+                            workingString = workingString.replace(actBindPath, tmpltName); //These two lines tho
+                            attrBindObj[attr] = workingString;
 
                             //element.removeAttribute("attrib-bind-obj");
                         } else {
@@ -481,9 +481,12 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
             }
         }
 
-        $_anguleuxInterne.updateAttributes(element);
+        if(element.$_stat !== true){
+            $_anguleuxInterne.updateAttributes(element);
+        }
+
         if(element.$_stat === true){
-            element.removeAttribute("attrib-bind-obj");
+            //element.removeAttribute("attrib-bind-obj");
         }
 
     }
@@ -496,7 +499,7 @@ $_anguleuxInterne.resolveAttributeTemplate = (element, manualBindPath) => {
  * @param element
  * @param init
  */
-$_anguleuxInterne.updateAttributes = (element) => {
+$_anguleuxInterne.updateAttributes = (element, onlyThisOne) => {
 
     if (element.hasAttribute("attrib-bind-obj")) {
         let attrBindObj = $_anguleuxInterne.resolveObjectPathMoz($scope, element.getAttribute("attrib-bind-obj"))[$_anguleuxInterne.getDestinationName(element.getAttribute("attrib-bind-obj"))];
@@ -508,19 +511,27 @@ $_anguleuxInterne.updateAttributes = (element) => {
 
             let workingString = attrBindObj[attr];
 
-            let matches;
-            do {
-                matches = rgx.exec(workingString);
-                if (matches) {
-                    let tmpltName = matches.groups["tmplt"];
-                    let wholeTmpl = matches[2];
+            if(onlyThisOne === undefined) {
+                let matches;
+                do {
+                    matches = rgx.exec(workingString);
+                    if (matches) {
+                        let tmpltName = matches.groups["tmplt"];
+                        let wholeTmpl = matches[2];
 
-                    let value = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName)[$_anguleuxInterne.getDestinationName(tmpltName)];
+                        let value = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName)[$_anguleuxInterne.getDestinationName(tmpltName)];
 
-                    workingString = workingString.replace(wholeTmpl, value);
-                }
-            } while (matches);
+                        workingString = workingString.replace(wholeTmpl, value);
+                    }
+                } while (matches);
+            }
 
+            if(onlyThisOne !== undefined){
+                let matches = rgx.exec(workingString);
+                let tmpltName = matches.groups["tmplt"];
+                let value = $_anguleuxInterne.resolveObjectPathMoz($scope, tmpltName)[$_anguleuxInterne.getDestinationName(tmpltName)];
+                workingString = workingString.replace(onlyThisOne, value);
+            }
 
             element.setAttribute(attr, workingString);
 
