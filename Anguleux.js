@@ -7,7 +7,8 @@ const $_anguleuxInterne = {
     forScope: {},
     staticAttributeRegistry: {},
     forReprocessNeeded: false,
-    customEventListeners: []
+    customEventListeners: [],
+    customEndingEvents: []
 
 };
 
@@ -341,6 +342,7 @@ $_anguleuxInterne.handleAgFor = (element) => {
     });
 
     element.setAttribute("for-done", "true");
+    $_anguleuxInterne.customEndingEvents.forEach(fct => fct(element));
 };
 
 // x : a.b.table.x
